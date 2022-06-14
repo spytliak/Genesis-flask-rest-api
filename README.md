@@ -6,7 +6,7 @@ The repo is for creating a RESTful API based on Python, Flask and MySQL.
 The database and its structure are created by the application at startup. The application gets the connection parameters to the DBMS from the environment variables.  
 
 * [requirements.txt](requirements.txt)     - the packages that the project requires
-* [app.py](app.py)                         - the application script
+* [api.py](api.py)                         - the application script
 
 The api database will have a student table with fields:  
  - id (int, unique, autoincrement)
