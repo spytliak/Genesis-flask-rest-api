@@ -59,6 +59,7 @@ class StudentSchema(Schema):
 def home():
     return '<p>Hello from students API!</p>', 200
  
+##task2. Эндпоинт /api должен возвращать краткую документацию к API (Эндпоинт - краткое описание, метод, код ответа) в формате JSON
 @app.route('/api', methods = ['GET'])
 def api_main():
     return jsonify('Hello, World!'), 200
@@ -90,6 +91,22 @@ def add_student():
     serializer = StudentSchema()
     data = serializer.dump(new_student)
     return jsonify(data), 201
+
+##task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
+
+# @app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
+
+# @app.route('/api/students/change/<int:id>', methods = ['PUT'])
+
+# @app.route('/api/deleteStudent/<int:id>', methods = ['DELETE'])
+
+##task3. Дополнительно добавить эндпоинты:
+# #/api/health-check/ok GET Код ответа: 200
+# @app.route('/api/health-check/ok', methods = ['GET'])
+
+# #/api/health-check/bad GET Код ответа: 500
+# @app.route('/api/health-check/bad', methods = ['GET'])
+
  
 if __name__ == '__main__':
     if not database_exists(engine.url):
