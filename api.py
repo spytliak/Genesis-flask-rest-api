@@ -93,20 +93,25 @@ def add_student():
     return jsonify(data), 201
 
 ##task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
+#@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
+#def modify_student(id):
 
-# @app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
+#@app.route('/api/students/change/<int:id>', methods = ['PUT'])
+#def change_student(id):
 
-# @app.route('/api/students/change/<int:id>', methods = ['PUT'])
-
-# @app.route('/api/deleteStudent/<int:id>', methods = ['DELETE'])
+#@app.route('/api/student/delete/<int:id>', methods = ['DELETE'])
+#def delete_student(id):
 
 ##task3. Дополнительно добавить эндпоинты:
 # #/api/health-check/ok GET Код ответа: 200
-# @app.route('/api/health-check/ok', methods = ['GET'])
+@app.route('/api/health-check/ok', methods = ['GET'])
+def health_check_ok():
+    return jsonify('Health check is OK'), 200
 
 # #/api/health-check/bad GET Код ответа: 500
-# @app.route('/api/health-check/bad', methods = ['GET'])
-
+@app.route('/api/health-check/bad', methods = ['GET'])
+def health_check_bad():
+    return jsonify('Health check is BAD'), 500
  
 if __name__ == '__main__':
     if not database_exists(engine.url):
