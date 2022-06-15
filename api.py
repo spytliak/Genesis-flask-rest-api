@@ -60,15 +60,18 @@ class StudentSchema(Schema):
  
 @app.route('/', methods = ['GET'])
 def home():
+    """Home endpoint"""
     return '<p>Hello from students API!</p>', 200
  
 ##task2. Эндпоинт /api должен возвращать краткую документацию к API (Эндпоинт - краткое описание, метод, код ответа) в формате JSON
 @app.route('/api', methods = ['GET'])
 def api_main():
+    """Main endpoint"""
     return jsonify('Hello, World!'), 200
  
 @app.route('/api/students', methods=['GET'])
 def get_all_students():
+    """Get all students endpoint"""
     students = Student.get_all()
     student_list = StudentSchema(many=True)
     response = student_list.dump(students)
@@ -76,6 +79,7 @@ def get_all_students():
  
 @app.route('/api/students/get/<int:id>', methods = ['GET'])
 def get_student(id):
+    """Get student endpoint"""
     student_info = Student.get_by_id(id)
     serializer = StudentSchema()
     response = serializer.dump(student_info)
@@ -83,6 +87,7 @@ def get_student(id):
  
 @app.route('/api/students/add', methods = ['POST'])
 def add_student():
+    """Add new student endpoint"""
     json_data = request.get_json()
     new_student = Student(
         name= json_data.get('name'),
@@ -95,26 +100,58 @@ def add_student():
     data = serializer.dump(new_student)
     return jsonify(data), 201
 
-##task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
-# @app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
-# def modify_student(id):
-#    """Modify student endpoint"""
+#task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
 
-@app.route('/api/students/change/<int:id>', methods = ['PUT'])
+@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])     # PATCH => Partially update an existing resource (not all attributes required).
+def modify_student(id):
+   """Modify student endpoint"""
+   if request.method == 'PATCH':
+       # get requested id object, used one_or_none for check if the row is not exist
+        student_modify = Student.query.filter(Student.id == id).one_or_none()
+        if student_modify:
+            # JSONify request details
+            json_data = request.get_json()
+            # check object
+            if "name" in json_data:
+                student_modify.name = json_data.get('name')
+            if "email" in json_data:
+                student_modify.email = json_data.get('email')
+            if "age" in json_data:
+                student_modify.age = json_data.get('age')
+            if "cellphone" in json_data:
+                student_modify.cellphone = json_data.get('cellphone')
+            # update data, created 'def update()' for that
+            student_modify.update()
+            serializer = StudentSchema()
+            data = serializer.dump(student_modify)
+            return jsonify(data), 204
+        else:
+            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
+
+
+@app.route('/api/students/change/<int:id>', methods = ['PUT'])      # PUT => Set all new attributes for an existing resource.
 def change_student(id):
     """Change student endpoint"""
     if request.method == 'PUT':
+        # get requested id object
         student_change = Student.query.filter(Student.id == id).one_or_none()
         if student_change:
+            # JSONify request details
             json_data = request.get_json()
             student_change.name = json_data.get('name')
             student_change.email = json_data.get('email')
             student_change.age = json_data.get('age')
             student_change.cellphone = json_data.get('cellphone')
-            student_change.update()
-            serializer = StudentSchema()
-            data = serializer.dump(student_change)
-            return jsonify(data), 200
+            # check all objects, needed for PUT
+            try: 
+                # update data
+                student_change.update()
+                serializer = StudentSchema()
+                data = serializer.dump(student_change)
+                return jsonify(data), 204
+            except Exception as e:
+                return ("Error: " + str(e)), 500    # example: "Error: (pymysql.err.IntegrityError) (1048, "Column 'cellphone' cannot be null")"
+
         else:
             return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
 
@@ -122,6 +159,7 @@ def change_student(id):
 def delete_student(id):
     """Remove student endpoint"""
     if request.method == 'DELETE':
+        # get requested id object
         delete_student = Student.query.filter(Student.id == id).one_or_none()
         if delete_student:
             delete_student.delete()
