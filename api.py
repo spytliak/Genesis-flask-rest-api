@@ -47,6 +47,9 @@ class Student(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+        
+    def update(self):
+        db.session.commit()
  
 class StudentSchema(Schema):
     id = fields.Integer()
@@ -93,28 +96,51 @@ def add_student():
     return jsonify(data), 201
 
 ##task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
-#@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
-#def modify_student(id):
+# @app.route('/api/students/modify/<int:id>', methods = ['PATCH'])
+# def modify_student(id):
+#    """Modify student endpoint"""
 
-#@app.route('/api/students/change/<int:id>', methods = ['PUT'])
-#def change_student(id):
+@app.route('/api/students/change/<int:id>', methods = ['PUT'])
+def change_student(id):
+    """Change student endpoint"""
+    if request.method == 'PUT':
+        student_change = Student.query.filter(Student.id == id).one_or_none()
+        if student_change:
+            json_data = request.get_json()
+            student_change.name = json_data.get('name')
+            student_change.email = json_data.get('email')
+            student_change.age = json_data.get('age')
+            student_change.cellphone = json_data.get('cellphone')
+            student_change.update()
+            serializer = StudentSchema()
+            data = serializer.dump(student_change)
+            return jsonify(data), 200
+        else:
+            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
 
-#@app.route('/api/student/delete/<int:id>', methods = ['DELETE'])
-#def delete_student(id):
+@app.route('/api/students/delete/<int:id>', methods = ['DELETE'])
+def delete_student(id):
+    """Remove student endpoint"""
+    if request.method == 'DELETE':
+        delete_student = Student.query.filter(Student.id == id).one_or_none()
+        if delete_student:
+            delete_student.delete()
+            return jsonify('Student with the given ID:{} was deleted'.format(id)), 200
+        else:
+            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
 
-##task3. Дополнительно добавить эндпоинты:
-# #/api/health-check/ok GET Код ответа: 200
 @app.route('/api/health-check/ok', methods = ['GET'])
 def health_check_ok():
+    """Healthy endpoint - OK"""
     return jsonify('Health check is OK'), 200
 
-# #/api/health-check/bad GET Код ответа: 500
 @app.route('/api/health-check/bad', methods = ['GET'])
 def health_check_bad():
+    """Healthy endpoint - BAD"""
     return jsonify('Health check is BAD'), 500
  
 if __name__ == '__main__':
     if not database_exists(engine.url):
         create_database(engine.url)
     db.create_all()
-    app.run(debug=True)
+    app.run(use_reloader=True, debug=True)
