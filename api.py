@@ -1,5 +1,6 @@
 from asyncio.proactor_events import _ProactorBasePipeTransport
 import os
+import json
  
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
@@ -63,11 +64,12 @@ def home():
     """Home endpoint"""
     return '<p>Hello from students API!</p>', 200
  
-##task2. Эндпоинт /api должен возвращать краткую документацию к API (Эндпоинт - краткое описание, метод, код ответа) в формате JSON
 @app.route('/api', methods = ['GET'])
 def api_main():
     """Main endpoint"""
-    return jsonify('Hello, World!'), 200
+    with open('api_doc.json', 'r', encoding='utf-8') as j:
+        json_data = json.load(j)
+    return jsonify(json_data), 200
  
 @app.route('/api/students', methods=['GET'])
 def get_all_students():
@@ -80,10 +82,13 @@ def get_all_students():
 @app.route('/api/students/get/<int:id>', methods = ['GET'])
 def get_student(id):
     """Get student endpoint"""
-    student_info = Student.get_by_id(id)
-    serializer = StudentSchema()
-    response = serializer.dump(student_info)
-    return jsonify(response), 200
+    student_info = Student.query.filter(Student.id == id).one_or_none()
+    if student_info:
+        serializer = StudentSchema()
+        response = serializer.dump(student_info)
+        return jsonify(response), 200
+    else:
+        return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
  
 @app.route('/api/students/add', methods = ['POST'])
 def add_student():
@@ -100,18 +105,19 @@ def add_student():
     data = serializer.dump(new_student)
     return jsonify(data), 201
 
-#task1. Реализовать эндпоинты: /api/students/modify/<id> (PATCH), /api/students/change/<id> (PUT), /api/deleteStudent/<id> (DELETE)
-
-@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])     # PATCH => Partially update an existing resource (not all attributes required).
+@app.route('/api/students/modify/<int:id>', methods = ['PATCH'])        # PATCH => Partially update an existing resource (not all attributes required).
 def modify_student(id):
    """Modify student endpoint"""
    if request.method == 'PATCH':
+        # JSONify request details
+        json_data = request.get_json()
+        # check data
+        if not json_data:
+            return jsonify('No data provided'), 400
        # get requested id object, used one_or_none for check if the row is not exist
         student_modify = Student.query.filter(Student.id == id).one_or_none()
         if student_modify:
-            # JSONify request details
-            json_data = request.get_json()
-            # check object
+            # check objects
             if "name" in json_data:
                 student_modify.name = json_data.get('name')
             if "email" in json_data:
@@ -124,12 +130,11 @@ def modify_student(id):
             student_modify.update()
             serializer = StudentSchema()
             data = serializer.dump(student_modify)
-            return jsonify(data), 204
+            return jsonify(data), 201
         else:
             return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
 
-
-@app.route('/api/students/change/<int:id>', methods = ['PUT'])      # PUT => Set all new attributes for an existing resource.
+@app.route('/api/students/change/<int:id>', methods = ['PUT'])         # PUT => Set all new attributes for an existing resource.
 def change_student(id):
     """Change student endpoint"""
     if request.method == 'PUT':
@@ -142,15 +147,16 @@ def change_student(id):
             student_change.email = json_data.get('email')
             student_change.age = json_data.get('age')
             student_change.cellphone = json_data.get('cellphone')
-            # check all objects, needed for PUT
+            
+            # check all objects, needed for PUT if some object is missing
             try: 
                 # update data
                 student_change.update()
                 serializer = StudentSchema()
                 data = serializer.dump(student_change)
-                return jsonify(data), 204
+                return jsonify(data), 201
             except Exception as e:
-                return ("Error: " + str(e)), 500    # example: "Error: (pymysql.err.IntegrityError) (1048, "Column 'cellphone' cannot be null")"
+                return ("Error: " + str(e)), 400    # example: "Error: (pymysql.err.IntegrityError) (1048, "Column 'cellphone' cannot be null")"
 
         else:
             return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
@@ -163,7 +169,7 @@ def delete_student(id):
         delete_student = Student.query.filter(Student.id == id).one_or_none()
         if delete_student:
             delete_student.delete()
-            return jsonify('Student with the given ID:{} was deleted'.format(id)), 200
+            return jsonify('Student with the given ID:{} was deleted'.format(id)), 204
         else:
             return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
 
