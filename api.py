@@ -167,7 +167,7 @@ def delete_student(id):
         delete_student = Student.query.filter(Student.id == id).one_or_none()
         if delete_student:
             delete_student.delete()
-            return jsonify(message='Student with the given ID:{} was deleted'.format(id)), 204
+            return jsonify(message='Student with the given ID:{} was deleted'.format(id)), 200
         else:
             return jsonify(message='The student with the given ID:{} is not in the database'.format(id)), 404
 

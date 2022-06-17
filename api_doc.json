@@ -87,7 +87,7 @@
       "description": "The endpoint deletes student by ID",
       "method": "DELETE",
       "status code": {
-        "204": "if ID is existed",
+        "200": "if ID is existed",
         "404": "no found ID"
       }
     },
