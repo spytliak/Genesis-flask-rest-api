@@ -88,7 +88,7 @@ def get_student(id):
         response = serializer.dump(student_info)
         return jsonify(response), 200
     else:
-        return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
+        return jsonify(message='The student with the given ID:{} is not in the database'.format(id)), 404
  
 @app.route('/api/students/add', methods = ['POST'])
 def add_student():
@@ -113,7 +113,7 @@ def modify_student(id):
         json_data = request.get_json()
         # check data
         if not json_data:
-            return jsonify('No data provided'), 400
+            return jsonify(message='No data provided'), 400
        # get requested id object, used one_or_none for check if the row is not exist
         student_modify = Student.query.filter(Student.id == id).one_or_none()
         if student_modify:
@@ -132,7 +132,7 @@ def modify_student(id):
             data = serializer.dump(student_modify)
             return jsonify(data), 201
         else:
-            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
+            return jsonify(message='The student with the given ID:{} is not in the database'.format(id)), 404
 
 @app.route('/api/students/change/<int:id>', methods = ['PUT'])         # PUT => Set all new attributes for an existing resource.
 def change_student(id):
@@ -147,7 +147,6 @@ def change_student(id):
             student_change.email = json_data.get('email')
             student_change.age = json_data.get('age')
             student_change.cellphone = json_data.get('cellphone')
-            
             # check all objects, needed for PUT if some object is missing
             try: 
                 # update data
@@ -156,10 +155,9 @@ def change_student(id):
                 data = serializer.dump(student_change)
                 return jsonify(data), 201
             except Exception as e:
-                return ("Error: " + str(e)), 400    # example: "Error: (pymysql.err.IntegrityError) (1048, "Column 'cellphone' cannot be null")"
-
+                return ("Error: " + str(e)), 400   # example: "Error: (pymysql.err.IntegrityError) (1048, "Column 'cellphone' cannot be null")"
         else:
-            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
+            return jsonify(message='The student with the given ID:{} is not in the database'.format(id)), 404
 
 @app.route('/api/students/delete/<int:id>', methods = ['DELETE'])
 def delete_student(id):
@@ -169,19 +167,19 @@ def delete_student(id):
         delete_student = Student.query.filter(Student.id == id).one_or_none()
         if delete_student:
             delete_student.delete()
-            return jsonify('Student with the given ID:{} was deleted'.format(id)), 204
+            return jsonify(message='Student with the given ID:{} was deleted'.format(id)), 204
         else:
-            return jsonify('The student with the given ID:{} is not in the database'.format(id)), 404
+            return jsonify(message='The student with the given ID:{} is not in the database'.format(id)), 404
 
 @app.route('/api/health-check/ok', methods = ['GET'])
 def health_check_ok():
     """Healthy endpoint - OK"""
-    return jsonify('Health check is OK'), 200
+    return jsonify(message='Health check is OK'), 200
 
 @app.route('/api/health-check/bad', methods = ['GET'])
 def health_check_bad():
     """Healthy endpoint - BAD"""
-    return jsonify('Health check is BAD'), 500
+    return jsonify(message='Health check is BAD'), 500
  
 if __name__ == '__main__':
     if not database_exists(engine.url):
