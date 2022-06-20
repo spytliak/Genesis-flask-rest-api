@@ -39,8 +39,8 @@ For virtualenv:
    - venv, pip packages
 
 For docker:  
-    - docker >= 19.03.0
-    - docker-compose >= 1.29.0
+   - docker >= 19.03.0
+   - docker-compose >= 1.29.0
 #### Build the project:
 Virtualenv:
 ```
