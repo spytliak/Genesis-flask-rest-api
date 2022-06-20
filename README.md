@@ -4,10 +4,15 @@ The repository is for Genesis DevOps School.
 ### Description
 The repo is for creating a RESTful API based on Python, Flask and MySQL.  
 The database and its structure are created by the application at startup. The application gets the connection parameters to the DBMS from the environment variables.  
+Need to create .env file for using app. 
 
-* [requirements.txt](requirements.txt)     - the packages that the project requires
-* [api.py](api.py)                         - the application script
-* [api_doc.json](api_doc.json)             - the API documentation
+* [app](/app/)                                  - the application folder (flask)
+* [api.py](/app/api.py)                         - the application script
+* [api_doc.json](/app/api_doc.json)             - the API documentation
+* [requirements.txt](requirements.txt)          - the packages that the project requires
+* [.env.example](.env.example)                  - the example .env file
+* [Dockerfile](Dockerfile)                      - Dockerfile for api
+* [docker-compose.yml](docker-compose.yml)      - Docker Compose file
 
 The api database will have a student table with fields:  
  - id (int, unique, autoincrement)
@@ -28,26 +33,32 @@ The key endpoints:
  - /api/health-check/bad (GET) 500               - bad health-check endpoint
 
 #### Prerequisites:
+For virtualenv:  
    - Python 3
    - MySQL with created user
    - venv, pip packages
 
+For docker:  
+    - docker >= 19.03.0
+    - docker-compose >= 1.29.0
 #### Build the project:
+Virtualenv:
 ```
 python3 -m venv venv
 source vevn/bin/activate
 pip install -r requirements.txt
+python3 ./app/api.py
+```
+Docker-compose:
+```
+sudo docker-compose build
+sudo docker-compose up -d
 ```
 
-#### Run API:
-```
-python3 api.py
-```
-
-#### Examples:
+#### Examples using api in console:
 Create student:
 ```
-sepy0416@WS-17690:~$ sepy0416@WS-17690:~$ curl -X POST http://127.0.0.1:5000/api/students/add -H 'Content-Type: application/json' -d '{"name":"Dev Ops","email":"devops@mail.com","age":"30","cellphone":"0631230777"}'
+sepy0416@WS-17690:~$ curl -X POST http://127.0.0.1:5000/api/students/add -H 'Content-Type: application/json' -d '{"name":"Dev Ops","email":"devops@mail.com","age":"30","cellphone":"0631230777"}'
 {
   "age": 30,
   "cellphone": "0631230777",
@@ -103,4 +114,28 @@ sepy0416@WS-17690:~$ curl -X DELETE http://127.0.0.1:5000/api/students/delete/23
 {
   "message": "Student with the given ID:23 was deleted"
 }
+```
+
+#### The test changing api (docker volume):
+Check volumes:
+```
+sepy0416@WS-17690:~$ sudo docker volume ls
+DRIVER    VOLUME NAME
+local     genesis-flask-rest-api_api-db
+local     genesis-flask-rest-api_flaskapi
+```
+The genesis-flask-rest-api_flaskapi volume is for flask api.  
+Check mountpoint:
+```
+sepy0416@WS-17690:~$ sudo docker volume inspect genesis-flask-rest-api_flaskapi |grep -i 'mount'
+        "Mountpoint": "/var/lib/docker/volumes/genesis-flask-rest-api_flaskapi/_data",
+```
+Change return endpoints '/':
+```
+sepy0416@WS-17690:~$ sudo sed -i 's/Hello from students API!/Genesis API!/g' /var/lib/docker/volumes/genesis-flask-rest-api_flaskapi/_data/api.py
+```
+Check api:
+```
+sepy0416@WS-17690:~$ sudo curl -X GET http://127.0.0.1:5000/
+<p>Genesis API!</p>
 ```
