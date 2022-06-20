@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  flask-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genesis-flask-rest-api
+    restart: always
+    volumes:
+      - flaskapi:/app
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      FLASK_DEBUG: ${FLASK_DEBUG}
+      FLASK_ENVIRONMENT: ${FLASK_ENVIRONMENT}
+      FLASK_APP: ${FLASK_APP}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOSTNAME: db
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "0.0.0.0:5000"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    networks:
+      - genesis
+
+  db:
+    image: mysql:8.0.29
+    container_name: db
+    restart: always
+    volumes:
+      - api-db:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - genesis
+
+networks:
+  genesis:
+    name: api
+
+volumes:
+  api-db:
+  flaskapi:
