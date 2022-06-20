@@ -4,11 +4,11 @@ LABEL NAME="spytliak/genesis-flask-rest-api"
 LABEL VERSION="0.0.1"
 LABEL MAINTEINER="Serhii Pytliak pytliak.serhii@gmail.com" 
 
-RUN apk add -u --no-cache gcc python3-dev musl-dev libffi-dev openssl-dev curl && \
+RUN apk add -u --no-cache gcc libc-dev libffi-dev curl && \
     rm -rf /var/cache/apk/*
 
 FROM base as builder
-RUN mkdir /install
+
 WORKDIR /install
 
 COPY requirements.txt /tmp/requirements.txt
@@ -24,8 +24,10 @@ COPY /app /app
 ENV FLASK_RUN_HOST="0.0.0.0"
 ENV PORT="5000"
 ENV FLASK_APP="api.py"
+ENV FLASK_DEBUG: 1
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=3s --retries=3 CMD [ "curl", "0.0.0.0:5000" ]
 
 EXPOSE 5000
+
 CMD ["flask", "run"]
