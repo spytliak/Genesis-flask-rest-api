@@ -1,0 +1,35 @@
+# Ignored docker/docker-compose files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Ignored git files
+.git
+.gitignore
+
+# Ignored README* files
+README.md
+README*.md
+LICENSE
+
+# Ignored Envirenment files
+.env
+.venv
+env/
+venv/
+ENV/
+**/env
+
+# Ignored pycache files
+**/__pycache__
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignored vscode files
+**/.vscode
+.vscode
+
+
+# Allow files and directories
+!./requirements.txt
